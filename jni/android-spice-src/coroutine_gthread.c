@@ -142,8 +142,10 @@ struct coroutine *coroutine_self(void)
 
 void *coroutine_yieldto(struct coroutine *to, void *arg)
 {
-    //ahoo
+    //FIXME
+    //why it will often goto abort in Android!?
     to->caller= NULL;
+    //
 	if (to->caller) {
 		fprintf(stderr, "Co-routine is re-entering itself\n");
 		abort();

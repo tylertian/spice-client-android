@@ -1,3 +1,21 @@
+/* -*- Mode: C; c-basic-offset: 4; indent-tabs-mode: nil -*- */
+/*
+   Copyright (C) 2011  Keqisoft,Co,Ltd,Shanghai,China
+   Copyright (C) 2011  Shuxiang Lin (shohyanglim@gmail.com)
+
+   This library is free software; you can redistribute it and/or
+   modify it under the terms of the GNU Lesser General Public
+   License as published by the Free Software Foundation; either
+   version 2.1 of the License, or (at your option) any later version.
+
+   This library is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   Lesser General Public License for more details.
+
+   You should have received a copy of the GNU Lesser General Public
+   License along with this library; if not, see <http://www.gnu.org/licenses/>.
+*/
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <unistd.h>
@@ -141,6 +159,7 @@ error:
 	error("msg_send error!\n");
 }
 
+/*
 uint8_t* raw2jpg(uint8_t* data, int width,int height )
 {
     uint8_t* bmp =(uint8_t*)malloc(3*width*height);
@@ -156,18 +175,13 @@ uint8_t* raw2jpg(uint8_t* data, int width,int height )
 	n--;
     }
     int bytes_per_pixel = 3;
-    int color_space = JCS_RGB; /* or JCS_GRAYSCALE for grayscale images */
+    int color_space = JCS_RGB; //or JCS_GRAYSCALE for grayscale images 
     struct jpeg_compress_struct cinfo;
     struct jpeg_error_mgr jerr;
 
-    /* this is a pointer to one row of image data */
     JSAMPROW row_pointer[1];
     cinfo.err = jpeg_std_error( &jerr );
     jpeg_create_compress(&cinfo);
-    /*
-       unsigned long outlen;
-       jpeg_mem_dest (&cinfo,&outbuffer,&outlen );
-       */
     char* filename = "/data/data/com.keqisoft.android.spice/ahoo.jpg";
     FILE *foolfile = fopen( filename, "w+b" );
     if ( !foolfile )
@@ -179,27 +193,22 @@ uint8_t* raw2jpg(uint8_t* data, int width,int height )
     unsigned char *outbuffer;
     jpeg_stdio_dest(&cinfo, foolfile);
 
-    /* Setting the parameters of the output file here */
     cinfo.image_width = width;
     cinfo.image_height = height;
     cinfo.input_components = bytes_per_pixel;
     cinfo.in_color_space = color_space;
-    /* default compression parameters, we shouldn't be worried about these */
 
     jpeg_set_defaults(&cinfo );
     cinfo.num_components = 3;
     //cinfo.data_precision = 4;
     cinfo.dct_method = JDCT_FLOAT;
     jpeg_set_quality(&cinfo, 90, TRUE);
-    /* Now do the compression .. */
     jpeg_start_compress( &cinfo, TRUE );
-    /* like reading a file, this time write one row at a time */
     while( cinfo.next_scanline < cinfo.image_height )
     {
 	row_pointer[0] = &bmp[ cinfo.next_scanline * cinfo.image_width * cinfo.input_components];
 	jpeg_write_scanlines( &cinfo, row_pointer, 1 );
     }
-    /* similar to read file, clean up after we're done compressing */
     jpeg_finish_compress( &cinfo );
     jpeg_destroy_compress( &cinfo );
     free(bmp);
@@ -216,6 +225,7 @@ uint8_t* raw2jpg(uint8_t* data, int width,int height )
     //if (result != foolsize) {error("Reading error");}
     return outbuffer;
 }
+*/
 
 
 void android_show(spice_display* d,gint x,gint y,gint w,gint h)
