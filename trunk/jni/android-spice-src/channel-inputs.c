@@ -262,7 +262,7 @@ static void inputs_handle_modifiers(SpiceChannel *channel, spice_msg_in *in)
 /* coroutine context */
 static void inputs_handle_ack(SpiceChannel *channel, spice_msg_in *in)
 {
-    SPICE_DEBUG("---------------ahoooooooooooooooooo------------\nGot inputs_handle_ack");
+    SPICE_DEBUG("---------------\nGot inputs_handle_ack");
     spice_inputs_channel *c = SPICE_INPUTS_CHANNEL(channel)->priv;
     spice_msg_out *msg;
 

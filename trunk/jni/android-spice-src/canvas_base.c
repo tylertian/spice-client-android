@@ -32,9 +32,13 @@
 #include "lines.h"
 #include "rop3.h"
 #include "mem.h"
-//ahoooooo
+
+//dirty and drugery work to use jpeg directly in Android
+
+#ifdef ANDROID
 #include "android-spice.h"
 extern volatile AndroidShow android_show_display;
+#endif
 
 #include "mutex.h"
 
