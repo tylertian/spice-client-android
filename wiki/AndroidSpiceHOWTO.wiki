@@ -13,6 +13,7 @@
 #ndk-build 
  then build the SDK project
 #ant debug
+ 
 If your want to use the built androidspice to connect your VM,you should also force JPEG compression in Spice-server.(see section "Details")
 
 = Prerequisites =
@@ -24,4 +25,5 @@ http://blog.csdn.net/rozenix
 = Details =
   The damned greatest obstacle I've faced in the porting lies in the structure of Android:It has no(at least for version<2.3 ) exposed audio/image output and input API for C(only Java!)! So I have to transport all the fixed data got from spice-server to Java layer by adding two new threads to handle the I/O communication with Java UI via two UNIX-sockets,that's the leg-drawing of speed. Besides, quic.c in client is buggy of SIGBUS or SIGSEGV on android(no time to rewrite it now),I have no better way but to force use of JPEG compression in server and send jpeg data directly to Java UI for output, it's queer and should be condemned('cause Spice's value is in the Image processing ability),
 So now It just WORKS,but works badly, the first bug is this
-#bug 1:If press fast on the device the spice-server as well as the android-spice-client will be choked and no image updates will be sent out from server. I'm still working on this bug,I need help!
+
+ #bug 1:If press fast on the device the spice-server as well as the android-spice-client will be choked and no image updates will be sent out from server. I'm still working on this bug,I need help!
