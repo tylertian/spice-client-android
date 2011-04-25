@@ -3,10 +3,11 @@
 = Introduction =
   This port is based on the spice-gtk-0.5 with which as the data layer along with the  UI layer rewritten in Java. It's released under LGPL, welcome to use and improve!
   
-= How to build(cmdline way,Eclipse way may diff)=
-  1.prepare and port the prerequisites: glib-2.28.1,pixman-0.20.0,jpeg-6b and openssl-1.0.0 onto android(see the section "Prerequisites" below)
-  2.download the source here and create the android project.
-  3.
+= How to build =
+(cmdline way,Eclipse way may diff)
+1.prepare and port the prerequisites: glib-2.28.1,pixman-0.20.0,jpeg-6b and openssl-1.0.0 onto android(see the section "Prerequisites" below)
+2.download the source here and create the android project.
+3.
 #android update project
  to build libspicec.so,in commandline,use 
 #ndk-build 
