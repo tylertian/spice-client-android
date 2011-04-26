@@ -1215,7 +1215,10 @@ static gboolean spice_channel_iterate(SpiceChannel *channel)
         }
 
         SPICE_CHANNEL_GET_CLASS(channel)->iterate_write(channel);
-        ret = g_io_wait_interruptable(&c->wait, c->sock, G_IO_IN);
+	/*FIXME: this calling will fall in deadloop because coroutine_swap() returns NULL;
+	 * So I force reading.
+	 * */
+        ret = G_IO_IN;//g_io_wait_interruptable(&c->wait, c->sock, G_IO_IN);
 #ifdef WIN32
         /* FIXME: windows gsocket is buggy, it doesn't return correct condition... */
         ret = g_socket_condition_check(c->sock, G_IO_IN);
