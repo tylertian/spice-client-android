@@ -47,7 +47,7 @@ void spice_util_set_debug(gboolean enabled)
 
 gboolean spice_util_get_debug(void)
 {
-    return TRUE;
+    //return TRUE;
     return debugFlag || g_getenv("SPICE_DEBUG") != NULL;
 }
 
