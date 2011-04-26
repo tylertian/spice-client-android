@@ -27,3 +27,9 @@ http://blog.csdn.net/rozenix
 So now It just WORKS,but works badly, the first bug is this
 
  Bug 1:If press fast on the device the spice-server as well as the android-spice-client will be choked and no image updates will be sent out from server. I'm still working on this bug,I need help!
+
+= Update =
+ Bug 1 fixed and the USABLE anroidSpice-0.1.4 is released both for source and apk files.
+= Use PS =
+ To link with your VM,modify the spice server to force the use of JPEG compression and rebuild/reinstall it.(you may check the red_worker.c in the Download page here)
+ Then start VM without "-vga qxl" and with "-usbdevice tablet" in qemu cmds.
