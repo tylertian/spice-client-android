@@ -210,33 +210,28 @@ public class SpiceCanvasActivity extends Activity {
 		    if (xo <= 5 && yo <= 5) {
 			int nx = (int) ((x  + canvas.getXOffset()) / scaling );
 			int ny = (int) ((y  + canvas.getYOffset()) / scaling);
-			// 处理狂点,只有两次点击时间超过100毫秒，才处理这次事件
-			if ((event.getEventTime() - last) < 100) {//double click
+			if ((event.getEventTime() - last) < 500) {//double click
+			    inputSender.sendMouse(new MouseDG(DGType.ANDROID_BUTTON_PRESS, nx, ny));
+			    try {
+				Thread.sleep(50);
+			    } catch (InterruptedException e) { }
+			    inputSender.sendMouse(new MouseDG(DGType.ANDROID_BUTTON_RELEASE, nx, ny));
+			    try {
+				Thread.sleep(50);
+			    } catch (InterruptedException e) { }
+			    inputSender.sendMouse(new MouseDG(DGType.ANDROID_BUTTON_PRESS, nx, ny));
+			    try {
+				Thread.sleep(50);
+			    } catch (InterruptedException e) { }
+			    inputSender.sendMouse(new MouseDG(DGType.ANDROID_BUTTON_RELEASE, nx, ny));
+			    last = event.getEventTime();
 			    return true;
-			    /*
-			       inputSender.sendMouse(new MouseDG(DGType.ANDROID_BUTTON_PRESS, nx, ny));
-			       try {
-			       Thread.sleep(100);
-			       } catch (InterruptedException e) { }
-			       inputSender.sendMouse(new MouseDG(DGType.ANDROID_BUTTON_RELEASE, nx, ny));
-			       try {
-			       Thread.sleep(100);
-			       } catch (InterruptedException e) { }
-			       inputSender.sendMouse(new MouseDG(DGType.ANDROID_BUTTON_PRESS, nx, ny));
-			       inputSender.sendMouse(new MouseDG(DGType.ANDROID_BUTTON_RELEASE, nx, ny));
-			       try {
-			       Thread.sleep(100);
-			       } catch (InterruptedException e) { }
-			       inputSender.sendMouse(new MouseDG(DGType.ANDROID_BUTTON_RELEASE, nx, ny));
-			       */
 			} 
 			inputSender.sendMouse(new MouseDG(DGType.ANDROID_BUTTON_PRESS, nx, ny));
 			try {
 			    Thread.sleep(100);
 			} catch (InterruptedException e) { }
 			inputSender.sendMouse(new MouseDG(DGType.ANDROID_BUTTON_RELEASE, nx, ny));
-			//Log.v("keqisoft", "Mouse x=" + x + ",y=" + y + ",xo="+canvas.getXOffset()+",yo="+canvas.getYOffset()+",scale="+scaling+",nx="+nx+",ny="+ny);
-			//inputSender.sendMouse(new MouseDG(DGType.ANDROID_BUTTON_RELEASE, nx, ny));
 		    }
 		    last = event.getEventTime();
 		}
@@ -244,4 +239,5 @@ public class SpiceCanvasActivity extends Activity {
 	    }
     }
 }
+
 
