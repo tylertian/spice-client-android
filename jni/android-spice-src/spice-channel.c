@@ -97,7 +97,6 @@ static const char *channel_desc[] = {
 
 static void spice_channel_iterate_write(SpiceChannel *channel);
 static void spice_channel_iterate_read(SpiceChannel *channel);
-static int try_times = 10;
 
 static void spice_channel_init(SpiceChannel *channel)
 {
@@ -1397,7 +1396,6 @@ end:
     /* Co-routine exits now - the SpiceChannel object may no longer exist,
        so don't do anything else now unless you like SEGVs */
 
-    //if(!--try_times)
     exit(1);
     return NULL;
 }

@@ -29,6 +29,7 @@
 G_DEFINE_TYPE(SpiceDisplay, spice_display, SPICE_TYPE_CHANNEL);
 static SpiceDisplay* android_display;
 void android_show(spice_display* d,gint x,gint y,gint w,gint h);
+int android_drop_show;
 
 static void disconnect_main(SpiceDisplay *display);
 static void disconnect_display(SpiceDisplay *display);
@@ -287,7 +288,11 @@ gboolean button_event(AndroidEventButton *button)
 
 void show_event(spice_display* d,gint x,gint y,gint w, gint h)
 {
-    android_show(d, x, y, w, h);
+    //drop some tiny but annoying updating caused by QXL to 
+    //low the data flow for android.
+    if(!(android_drop_show&(w*h < d->width)))
+	android_show(d, x, y, w, h);
+    android_drop_show = (w*h < d->width);
 }
 
 /* ---------------------------------------------------------------- */

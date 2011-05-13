@@ -22,12 +22,13 @@
 #include <stdlib.h>
 #include <sys/un.h>
 #include <stdio.h>
-#include <jpeglib.h>
 #include "spice-common.h"
 #include "android-spice.h"
 #include "android-spice-priv.h"
+#include "jpeg_encoder.h"
 
 extern GMainLoop* volatile android_mainloop;
+extern JpegEncoder* volatile android_jpeg_encoder;
 extern pthread_mutex_t android_mutex;  
 extern pthread_cond_t android_cond;  
 extern volatile int android_task_ready;
@@ -149,94 +150,48 @@ int msg_send_handle(int sockfd)
     n = write(sockfd,android_show_display.data,android_show_display.size);
     if(n<=0)
 	goto error;
-    //free(android_show_display.data);
+    free(android_show_display.data);
     SPICE_DEBUG("Image bytes sent:%d",n);
     return 0;
 error:
-    if(n=0)
+    if(n==0)
 	error("connection error!\n");
     else if(n<0)
 	error("msg_send error!\n");
+    return -1;
 }
+
+int raw2jpg(uint8_t* data, int width,int height )
+{
+    if(android_jpeg_encoder)
+	return jpeg_encode(android_jpeg_encoder,75,width,height,data,width*4,&android_show_display.data);
+    else
+    {
+	SPICE_DEBUG("no android_jpeg_encoder found!");
+	return 0;
+    }
+}
+
 
 /*
-uint8_t* raw2jpg(uint8_t* data, int width,int height )
-{
-    uint8_t* bmp =(uint8_t*)malloc(3*width*height);
-    uint8_t* loc = bmp;
-    int n = width*height;
-
-    while (n > 0) {
-	loc[0]=data[2];
-	loc[1]=data[1];
-	loc[2]=data[0];
-	data += 4;
-	loc  += 3;
-	n--;
-    }
-    int bytes_per_pixel = 3;
-    int color_space = JCS_RGB; //or JCS_GRAYSCALE for grayscale images 
-    struct jpeg_compress_struct cinfo;
-    struct jpeg_error_mgr jerr;
-
-    JSAMPROW row_pointer[1];
-    cinfo.err = jpeg_std_error( &jerr );
-    jpeg_create_compress(&cinfo);
-    char* filename = "/data/data/com.keqisoft.android.spice/ahoo.jpg";
-    FILE *foolfile = fopen( filename, "w+b" );
-    if ( !foolfile )
-    {
-	SPICE_DEBUG("Error opening output jpeg file %s\n!", filename );
-	return NULL;
-    }
-
-    unsigned char *outbuffer;
-    jpeg_stdio_dest(&cinfo, foolfile);
-
-    cinfo.image_width = width;
-    cinfo.image_height = height;
-    cinfo.input_components = bytes_per_pixel;
-    cinfo.in_color_space = color_space;
-
-    jpeg_set_defaults(&cinfo );
-    cinfo.num_components = 3;
-    //cinfo.data_precision = 4;
-    cinfo.dct_method = JDCT_FLOAT;
-    jpeg_set_quality(&cinfo, 90, TRUE);
-    jpeg_start_compress( &cinfo, TRUE );
-    while( cinfo.next_scanline < cinfo.image_height )
-    {
-	row_pointer[0] = &bmp[ cinfo.next_scanline * cinfo.image_width * cinfo.input_components];
-	jpeg_write_scanlines( &cinfo, row_pointer, 1 );
-    }
-    jpeg_finish_compress( &cinfo );
-    jpeg_destroy_compress( &cinfo );
-    free(bmp);
-
-    fseek (foolfile, 0,SEEK_END);
-    int foolsize = ftell (foolfile);
-    android_show_display.size = foolsize;
-    rewind (foolfile);
-    //freed by caller;
-    fclose(foolfile);
-    //outbuffer = (uint8_t*) malloc (foolsize);
-    //if (outbuffer == NULL) {error("Memory error");}
-    //int result = fread (outbuffer,1,foolsize,foolfile);
-    //if (result != foolsize) {error("Reading error");}
-    return outbuffer;
-}
-*/
-
-
+ * All the sins comes from the architect of Android: All UI must be
+ * written in Java(at least <2.3), so I have to send the image buffer data to Java
+ * with Little and Fast flow as possible for the Easy display of latter,hence the use of JPEG_COMP.
+ * FIXME:This maybe the only rational way,but that means androidSpice will never leave
+ * the status quo labelled EXPERIMENTAL.Tragic...
+ *
+ * FIXME: androidSpice UI in JAVA can only process the image of horizontal bars
+ * So,even QXL gives me normal tiny rectangles,I should send bars to JAVA.
+ * So I abandon some little rects to low the flow,this is stupid though...
+ */
 void android_show(spice_display* d,gint x,gint y,gint w,gint h)
 {
     android_show_display.type = ANDROID_SHOW;
-    android_show_display.width = w;
-    android_show_display.height = h;
-    android_show_display.x = x;
+    android_show_display.width = d->width; //w;
+    android_show_display.height =  h;
+    android_show_display.x = 0;//x;
     android_show_display.y = y;
-    //android_show_display.data =  raw2jpg((uint8_t*)d->data+y*d->width+x,w,h);
-    //android_show_display.data =  raw2jpg((uint8_t*)d->data,d->width,d->height);//+y*d->width+x,w,h);
+    android_show_display.size =  raw2jpg((uint8_t*)d->data+y*d->width*4,d->width,h);
     SPICE_DEBUG("ANDROID_SHOW for %p:w--%d:h--%d:x--%d:y--%d:jpeg_size--%d",
 	    (char*)android_show_display.data,
 	    android_show_display.width,
@@ -248,7 +203,7 @@ void android_show(spice_display* d,gint x,gint y,gint w,gint h)
 }
 int android_spice_input()
 {
-    int sockfd, newsockfd, servlen, n;
+    int sockfd, newsockfd, servlen;
     socklen_t clilen;
     struct sockaddr_un  cli_addr, serv_addr;
     char buf[16];
@@ -258,7 +213,6 @@ int android_spice_input()
     memset((char *) &serv_addr,0, sizeof(serv_addr));
     serv_addr.sun_family = AF_UNIX;
     char* sock = "/data/data/com.keqisoft.android.spice/spice-input.socket";
-    //char* sock = "/data/local/tmp/spice-input.socket";
     remove(sock);
     strcpy(serv_addr.sun_path, sock);
     servlen=strlen(serv_addr.sun_path) + 
@@ -283,7 +237,7 @@ int android_spice_input()
 }
 int android_spice_output()
 {
-    int sockfd, newsockfd, servlen, n;
+    int sockfd, newsockfd, servlen;
     socklen_t clilen;
     struct sockaddr_un  cli_addr, serv_addr;
 
@@ -292,7 +246,6 @@ int android_spice_output()
     memset((char *) &serv_addr,0, sizeof(serv_addr));
     serv_addr.sun_family = AF_UNIX;
     char* sock = "/data/data/com.keqisoft.android.spice/spice-output.socket";
-    //char* sock = "/data/local/tmp/spice-output.socket";
     remove(sock);
     strcpy(serv_addr.sun_path, sock);
     servlen=strlen(serv_addr.sun_path) + 
