@@ -19,7 +19,7 @@ public class InputSender {
 				return;
 			}
 		}
-		Log.v("keqisoft", "SendKey:" + keyDg.getKeycode());
+		//Log.v("keqisoft", "SendKey:" + keyDg.getKeycode());
 		try {
 			DataOutputStream out = sockHandler.getOut();
 			out.writeInt(keyDg.getDgType());

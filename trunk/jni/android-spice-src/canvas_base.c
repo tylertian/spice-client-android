@@ -33,13 +33,6 @@
 #include "rop3.h"
 #include "mem.h"
 
-//dirty and drugery work to use jpeg directly in Android
-
-#ifdef ANDROID
-#include "android-spice.h"
-extern volatile AndroidShow android_show_display;
-#endif
-
 #include "mutex.h"
 
 #ifndef CANVAS_ERROR
@@ -529,12 +522,6 @@ static pixman_image_t *canvas_get_jpeg(CanvasBase *canvas, SpiceImage *image, in
     int width;
     int height;
     uint8_t *dest;
-
-    //send the jpeg to JAVA directly.But this shall be condemned.
-    android_show_display.size = image->u.jpeg.data->chunk[0].len;
-    android_show_display.data = image->u.jpeg.data->chunk[0].data;
-    SPICE_DEBUG("set jpeg src @: %p----jpeg_size:%d",android_show_display.data,android_show_display.size);
-    //
 
     ASSERT(image->u.jpeg.data->num_chunks == 1); /* TODO: Handle chunks */
     canvas->jpeg->ops->begin_decode(canvas->jpeg, image->u.jpeg.data->chunk[0].data, image->u.jpeg.data->chunk[0].len,
@@ -1113,7 +1100,7 @@ static pixman_image_t *canvas_get_image_internal(CanvasBase *canvas, SpiceImage 
         want_original = TRUE;
     }
 
-    SPICE_DEBUG("SPICE_IMAGE_TYPE:%d",descriptor->type);
+    SPICE_DEBUG("-----------Got SPICE_IMAGE_TYPE:%d",descriptor->type);
     switch (descriptor->type) {
     case SPICE_IMAGE_TYPE_QUIC: {
         surface = canvas_get_quic(canvas, image, 0, want_original);

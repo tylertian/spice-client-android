@@ -22,13 +22,12 @@
 
 #include <sys/stat.h>
 #include "android-spice.h"
+#include "jpeg_encoder.h"
 #include "spice-common.h"
 #include "spice-audio.h"
 #include "spice-cmdline.h"
 #include <jni.h>
 
-/* config */
-static gboolean fullscreen = false;
 
 enum {
     STATE_SCROLL_LOCK,
@@ -60,6 +59,7 @@ struct spice_connection {
 
 //for android-workers threads
 volatile GMainLoop* android_mainloop;
+volatile JpegEncoder* android_jpeg_encoder;
 volatile int android_task_ready;
 volatile int android_task;
 pthread_mutex_t android_mutex = PTHREAD_MUTEX_INITIALIZER;  
@@ -88,23 +88,7 @@ static spice_window *create_spice_window(spice_connection *conn, int id)
     win->conn = conn;
     g_message("create window (#%d)", win->id);
 
-    /* toplevel */
-    //gtk_init(NULL,NULL );
-    //win->toplevel = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-    /* spice display */
-    //win->spice = GTK_WIDGET(spice_display_new(conn->session, id));
     win->spice = (spice_display_new(conn->session, id));
-    /* Make a vbox and put stuff in */
-    //vbox = gtk_vbox_new(FALSE, 1);
-    //gtk_container_set_border_width(GTK_CONTAINER(vbox), 0);
-    //gtk_container_add(GTK_CONTAINER(win->toplevel), vbox);
-    //gtk_box_pack_start(GTK_BOX(vbox), win->spice, TRUE, TRUE, 0);
-    /* show window */
-    //if (fullscreen)
-    //gtk_window_fullscreen(GTK_WINDOW(win->toplevel));
-
-    //gtk_widget_show_all(win->toplevel);
-    //gtk_widget_grab_focus(win->spice);
     return win;
 }
 
@@ -298,7 +282,7 @@ static void connection_destroy(spice_connection *conn)
 }
 
 /* ------------------------------------------------------------------ */
-int cmd_parse(char* cmd,char** argv,int* argc)
+void cmd_parse(char* cmd,char** argv,int* argc)
 {
     char* ch;
     char* loc;
@@ -360,7 +344,6 @@ jint Java_com_keqisoft_android_spice_socket_Connector_AndroidSpicec(JNIEnv *env,
     int dex;
     for(dex=0;dex<argc;dex++)
 	SPICE_DEBUG("got item:size:%s:%d",argv[dex],strlen(argv[dex]));
-    //return 0;
 
     GError *error = NULL;
     GOptionContext *context;
@@ -395,11 +378,14 @@ jint Java_com_keqisoft_android_spice_socket_Connector_AndroidSpicec(JNIEnv *env,
 	//start the android workers threads
 	iret1 = pthread_create( &android_input, NULL, (void*)android_spice_input, NULL);  
 	iret2 = pthread_create( &android_output, NULL, (void*)android_spice_output, NULL);  
+	//create jpeg_encoder for the jpg images to JAVA
+	android_jpeg_encoder = jpeg_encoder_create();
 
 	g_main_loop_run(mainloop);
 
 	pthread_join(android_input, NULL);  
 	pthread_join(android_output, NULL);   
+	jpeg_encoder_destroy(android_jpeg_encoder);
 	SPICE_DEBUG("stop I/O threads");
     }
 
