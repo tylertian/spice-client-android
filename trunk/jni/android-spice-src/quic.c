@@ -461,7 +461,15 @@ static INLINE void flush(Encoder *encoder)
 static void __read_io_word(Encoder *encoder)
 {
     more_io_words(encoder);
+/*
+ * FIXME: This will cause SIGBUS on some ARM,some maybe avoided by '-O0'
+ * while some cannot.Hence comes the stupid way.Is there any cute way?
+ */
+#ifdef ANDROID
+    memcpy(&encoder->io_next_word, encoder->io_now++,sizeof(uint32_t));
+#else
     encoder->io_next_word = *(encoder->io_now++);
+#endif
 }
 
 static void (*__read_io_word_ptr)(Encoder *encoder) = __read_io_word;
@@ -474,7 +482,11 @@ static INLINE void read_io_word(Encoder *encoder)
         return;
     }
     ASSERT(encoder->usr, encoder->io_now < encoder->io_end);
+#ifdef ANDROID
+    memcpy(&encoder->io_next_word, encoder->io_now++,sizeof(uint32_t));
+#else
     encoder->io_next_word = *(encoder->io_now++);
+#endif
 }
 
 static INLINE void decode_eatbits(Encoder *encoder, int len)
@@ -759,7 +771,12 @@ static INLINE unsigned int decode_run(Encoder *encoder)
 
 static INLINE void init_decode_io(Encoder *encoder)
 {
+#ifdef ANDROID
+    memcpy(&encoder->io_word, encoder->io_now++,sizeof(uint32_t));
+    encoder->io_next_word = encoder->io_word;
+#else
     encoder->io_next_word = encoder->io_word = *(encoder->io_now++);
+#endif
     encoder->io_available_bits = 0;
 }
 
