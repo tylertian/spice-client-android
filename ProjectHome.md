@@ -1,0 +1,1 @@
+Android client for SPICE,based on the spice-gtk-0.5,with libspicec.so as the bottom layer and UI rewritten in Java.
